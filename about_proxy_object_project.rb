@@ -24,19 +24,14 @@ class Proxy
     @messages.include? method_name
   end
 
-  def number_of_times_called(item)
-    if item == :channel=
-      1
-    elsif item == :power
-      2
-    else
-      0
-    end
+  def number_of_times_called(method_name)
+    @messages.count method_name
   end
 
   def method_missing(method_name, *args, &block)
-    if @object.respond_to? method_name then
+    if @object.respond_to? method_name
       @messages.push method_name
+      @object.send method_name, *args, &block
     else
       super method_name, *args, &block
     end
@@ -61,7 +56,7 @@ class AboutProxyObjectProject < Neo::Koan
     tv.channel = 10
     tv.power
 
-    assert_equal [:channel=, :power, :channel], tv.channel
+    assert_equal 10, tv.channel
     assert tv.on?
   end
 
@@ -110,7 +105,7 @@ class AboutProxyObjectProject < Neo::Koan
     proxy.upcase!
     result = proxy.split
 
-    assert_equal [:upcase!, :split], result
+    assert_equal ["CODE", "MASH", "2009"], result
     assert_equal [:upcase!, :split], proxy.messages
   end
 end
